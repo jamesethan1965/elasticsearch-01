@@ -105,10 +105,14 @@ public class RankDocsRetrieverBuilder extends RetrieverBuilder {
         // if we have aggregations we need to compute them based on all doc matches, not just the top hits
         // similarly, for profile and explain we re-run all parent queries to get all needed information
         RankDoc[] rankDocResults = rankDocs.get();
-        if (hasAggregations(searchSourceBuilder)
+        // If minScore is applied, total hits should only count the docs >= minScore, even if track_total_hits is requested.
+        boolean trackTotalHitsDespiteMinScore = (hasAggregations(searchSourceBuilder)
             || isExplainRequest(searchSourceBuilder)
             || isProfileRequest(searchSourceBuilder)
-            || shouldTrackTotalHits(searchSourceBuilder)) {
+            || shouldTrackTotalHits(searchSourceBuilder))
+            && (sourceHasMinScore() == false);
+
+        if (trackTotalHitsDespiteMinScore) {
             if (false == isExplainRequest(searchSourceBuilder)) {
                 rankQuery = new RankDocsQueryBuilder(
                     rankDocResults,
@@ -123,7 +127,9 @@ public class RankDocsRetrieverBuilder extends RetrieverBuilder {
                 );
             }
         } else {
-            rankQuery = new RankDocsQueryBuilder(rankDocResults, null, false);
+            // Pass minScore down to RankDocsQueryBuilder
+            float effectiveMinScore = this.minScore() != null ? this.minScore() : RankDocsQueryBuilder.DEFAULT_MIN_SCORE;
+            rankQuery = new RankDocsQueryBuilder(rankDocResults, null, false, effectiveMinScore);
         }
         rankQuery.queryName(retrieverName());
         // ignore prefilters of this level, they were already propagated to children

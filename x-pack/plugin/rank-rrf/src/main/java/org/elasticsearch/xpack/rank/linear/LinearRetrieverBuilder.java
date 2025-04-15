@@ -191,24 +191,22 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
         }
         // sort the results based on the final score, tiebreaker based on smaller doc id
         LinearRankDoc[] sortedResults = docsToRankResults.values().toArray(LinearRankDoc[]::new);
-        Arrays.sort(sortedResults);
-        // Filter documents below minScore, with special handling for default minScore
-        LinearRankDoc[] filteredResults;
-        if (minScore == DEFAULT_MIN_SCORE) {
-            filteredResults = sortedResults;
-        } else {
-            filteredResults = Arrays.stream(sortedResults).filter(doc -> {
-                // Ensure we're comparing against the final combined score
-                float finalScore = doc.score;
-                return finalScore >= minScore;
-            }).toArray(LinearRankDoc[]::new);
+        Arrays.sort(sortedResults); // Sorts descending by score (highest first)
+
+        // Find the number of results that meet the minScore threshold
+        int validCount = 0;
+        while (validCount < sortedResults.length && sortedResults[validCount].score >= minScore) {
+            validCount++;
         }
-        // trim the results if needed, otherwise each shard will always return `rank_window_size` results.
-        LinearRankDoc[] topResults = new LinearRankDoc[Math.min(rankWindowSize, filteredResults.length)];
+
+        // trim the results to the minimum of rankWindowSize and the number of valid results
+        int finalSize = Math.min(rankWindowSize, validCount);
+        LinearRankDoc[] topResults = new LinearRankDoc[finalSize];
         for (int rank = 0; rank < topResults.length; ++rank) {
-            topResults[rank] = filteredResults[rank];
+            topResults[rank] = sortedResults[rank];
             topResults[rank].rank = rank + 1;
         }
+
         System.out.println("topResults: " + topResults.length);
         return topResults;
     }
