@@ -98,8 +98,7 @@ public class LinearRetrieverIT extends ESIntegTestCase {
                 client().execute(TransportClosePointInTimeAction.TYPE, new ClosePointInTimeRequest(pitId)).actionGet(30, TimeUnit.SECONDS);
                 pitId = null;
                 Thread.sleep(100);
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
         }
     }
 
@@ -918,7 +917,8 @@ public class LinearRetrieverIT extends ESIntegTestCase {
             // Asserting on hits.length verifies the retriever's minScore correctly filtered the returned hits.
             // assertNotNull(resp.getHits().getTotalHits()); // getTotalHits() might still be non-null
             // assertThat(resp.getHits().getTotalHits().value(), equalTo(1L)); // This assertion is incorrect based on expected behavior
-            // assertThat(resp.getHits().getTotalHits().relation(), equalTo(TotalHits.Relation.EQUAL_TO)); // Relation also reflects pre-filtering count
+            // assertThat(resp.getHits().getTotalHits().relation(), equalTo(TotalHits.Relation.EQUAL_TO)); // Relation also reflects
+            // pre-filtering count
             assertThat(resp.getHits().getHits().length, equalTo(1)); // Verify actual returned hits count
             assertThat(resp.getHits().getAt(0).getId(), equalTo("doc_2"));
             assertThat((double) resp.getHits().getAt(0).getScore(), closeTo(30.0f, 0.001f));

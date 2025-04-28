@@ -109,8 +109,7 @@ public class RankDocsRetrieverBuilder extends RetrieverBuilder {
         boolean trackTotalHitsDespiteMinScore = (hasAggregations(searchSourceBuilder)
             || isExplainRequest(searchSourceBuilder)
             || isProfileRequest(searchSourceBuilder)
-            || shouldTrackTotalHits(searchSourceBuilder))
-            && (sourceHasMinScore() == false);
+            || shouldTrackTotalHits(searchSourceBuilder)) && (sourceHasMinScore() == false);
 
         if (trackTotalHitsDespiteMinScore) {
             if (false == isExplainRequest(searchSourceBuilder)) {
