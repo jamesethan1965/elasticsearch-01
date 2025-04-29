@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.elasticsearch.index.query.RankDocsQueryBuilder.DEFAULT_MIN_SCORE;
+import static org.elasticsearch.search.retriever.CompoundRetrieverBuilder.RANK_WINDOW_SIZE_FIELD;
 import static org.elasticsearch.xcontent.ConstructingObjectParser.constructorArg;
 import static org.elasticsearch.xcontent.ConstructingObjectParser.optionalConstructorArg;
 import static org.elasticsearch.xpack.rank.RankRRFFeatures.LINEAR_RETRIEVER_SUPPORTED;
@@ -154,7 +155,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
     }
 
     @Override
-    protected RankDoc[] combineInnerRetrieverResults(List<ScoreDoc[]> rankResults, boolean isExplain) {
+    protected RankDoc[] combineInnerRetrieverResults(List<ScoreDoc[]> rankResults, boolean explain) {
         Map<RankDoc.RankKey, LinearRankDoc> docsToRankResults = Maps.newMapWithExpectedSize(rankWindowSize);
         final String[] normalizerNames = Arrays.stream(normalizers).map(ScoreNormalizer::getName).toArray(String[]::new);
         for (int result = 0; result < rankResults.size(); result++) {
@@ -168,7 +169,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
                 LinearRankDoc rankDoc = docsToRankResults.computeIfAbsent(
                     new RankDoc.RankKey(originalScoreDocs[scoreDocIndex].doc, originalScoreDocs[scoreDocIndex].shardIndex),
                     key -> {
-                        if (isExplain) {
+                        if (explain) {
                             LinearRankDoc doc = new LinearRankDoc(key.doc(), 0f, key.shardIndex(), weights, normalizerNames);
                             doc.normalizedScores = new float[rankResults.size()];
                             return doc;
@@ -177,7 +178,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
                         }
                     }
                 );
-                if (isExplain) {
+                if (explain) {
                     rankDoc.normalizedScores[result] = normalizedScoreDocs[scoreDocIndex].score;
                 }
                 // if we do not have scores associated with this result set, just ignore its contribution to the final
