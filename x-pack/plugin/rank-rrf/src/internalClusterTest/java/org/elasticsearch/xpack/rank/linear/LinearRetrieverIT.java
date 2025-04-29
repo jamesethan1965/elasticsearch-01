@@ -7,7 +7,6 @@
 
 package org.elasticsearch.xpack.rank.linear;
 
-import org.apache.lucene.search.MatchAllDocsQuery;
 import org.apache.lucene.search.TotalHits;
 import org.elasticsearch.ElasticsearchStatusException;
 import org.elasticsearch.ExceptionsHelper;
@@ -37,7 +36,6 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.elasticsearch.search.collapse.CollapseBuilder;
 import org.elasticsearch.search.retriever.CompoundRetrieverBuilder;
 import org.elasticsearch.search.retriever.KnnRetrieverBuilder;
-import org.elasticsearch.search.retriever.RetrieverBuilder;
 import org.elasticsearch.search.retriever.StandardRetrieverBuilder;
 import org.elasticsearch.search.retriever.TestRetrieverBuilder;
 import org.elasticsearch.search.sort.FieldSortBuilder;
@@ -60,7 +58,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.Map;
 
 import static org.elasticsearch.cluster.metadata.IndexMetadata.SETTING_NUMBER_OF_SHARDS;
 import static org.elasticsearch.test.hamcrest.ElasticsearchAssertions.assertResponse;
@@ -905,7 +902,10 @@ public class LinearRetrieverIT extends ESIntegTestCase {
                 ),
                 rankWindowSize,
                 new float[] { 1.0f, 1.0f, 0.0f },
-                new ScoreNormalizer[] { IdentityScoreNormalizer.INSTANCE, IdentityScoreNormalizer.INSTANCE, IdentityScoreNormalizer.INSTANCE },
+                new ScoreNormalizer[] {
+                    IdentityScoreNormalizer.INSTANCE,
+                    IdentityScoreNormalizer.INSTANCE,
+                    IdentityScoreNormalizer.INSTANCE },
                 10.0f
             )
         );
@@ -995,11 +995,11 @@ public class LinearRetrieverIT extends ESIntegTestCase {
 
             // Calculated scores >= 1.5f should only be doc_2(2.0)
             // Observed behavior consistently shows 2 hits: doc_2(2.0) and one other doc (doc_1 or doc_3) with score 0.0
-            assertThat(resp.getHits().getHits().length, equalTo(2)); 
+            assertThat(resp.getHits().getHits().length, equalTo(2));
             assertThat(resp.getHits().getAt(0).getId(), equalTo("doc_2"));
             assertThat((double) resp.getHits().getAt(0).getScore(), closeTo(2.0f, 0.01f));
             // Assert the second hit has score 0.0, but don't assert its ID due to inconsistency
-            assertThat((double) resp.getHits().getAt(1).getScore(), closeTo(0.0f, 0.01f)); 
+            assertThat((double) resp.getHits().getAt(1).getScore(), closeTo(0.0f, 0.01f));
         });
     }
 
