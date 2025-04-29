@@ -191,9 +191,8 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
         }
         // sort the results based on the final score, tiebreaker based on smaller doc id
         LinearRankDoc[] sortedResults = docsToRankResults.values().toArray(LinearRankDoc[]::new);
-        Arrays.sort(sortedResults); // Sorts descending by score (highest first)
+        Arrays.sort(sortedResults);
 
-        // Find the number of results that meet the minScore threshold
         int validCount = 0;
         while (validCount < sortedResults.length && sortedResults[validCount].score >= minScore) {
             validCount++;
@@ -207,7 +206,6 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
             topResults[rank].rank = rank + 1;
         }
 
-        System.out.println("topResults: " + topResults.length);
         return topResults;
     }
 
