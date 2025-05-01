@@ -155,7 +155,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
     }
 
     @Override
-    protected RankDoc[] combineInnerRetrieverResults(List<ScoreDoc[]> rankResults, boolean explain) {
+    protected RankDoc[] combineInnerRetrieverResults(List<ScoreDoc[]> rankResults, boolean isExplain) {
         Map<RankDoc.RankKey, LinearRankDoc> docsToRankResults = Maps.newMapWithExpectedSize(rankWindowSize);
         final String[] normalizerNames = Arrays.stream(normalizers).map(ScoreNormalizer::getName).toArray(String[]::new);
         for (int result = 0; result < rankResults.size(); result++) {
@@ -169,7 +169,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
                 LinearRankDoc rankDoc = docsToRankResults.computeIfAbsent(
                     new RankDoc.RankKey(originalScoreDocs[scoreDocIndex].doc, originalScoreDocs[scoreDocIndex].shardIndex),
                     key -> {
-                        if (explain) {
+                        if (isExplain) {
                             LinearRankDoc doc = new LinearRankDoc(key.doc(), 0f, key.shardIndex(), weights, normalizerNames);
                             doc.normalizedScores = new float[rankResults.size()];
                             return doc;
@@ -178,7 +178,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
                         }
                     }
                 );
-                if (explain) {
+                if (isExplain) {
                     rankDoc.normalizedScores[result] = normalizedScoreDocs[scoreDocIndex].score;
                 }
                 // if we do not have scores associated with this result set, just ignore its contribution to the final
@@ -193,12 +193,10 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
         // sort the results based on the final score, tiebreaker based on smaller doc id
         LinearRankDoc[] sortedResults = docsToRankResults.values().toArray(LinearRankDoc[]::new);
         Arrays.sort(sortedResults);
-
         int validCount = 0;
         while (validCount < sortedResults.length && sortedResults[validCount].score >= minScore) {
             validCount++;
         }
-
         // trim the results to the minimum of rankWindowSize and the number of valid results
         int finalSize = Math.min(rankWindowSize, validCount);
         LinearRankDoc[] topResults = new LinearRankDoc[finalSize];
