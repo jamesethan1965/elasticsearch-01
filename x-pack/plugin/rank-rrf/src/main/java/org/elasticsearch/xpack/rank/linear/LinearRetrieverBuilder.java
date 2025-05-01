@@ -74,7 +74,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
                 normalizers[index] = component.normalizer;
                 index++;
             }
-            return new LinearRetrieverBuilder(innerRetrievers, rankWindowSize, weights, normalizers, minScore   );
+            return new LinearRetrieverBuilder(innerRetrievers, rankWindowSize, weights, normalizers, minScore);
         }
     );
 
@@ -211,5 +211,6 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
             builder.endArray();
         }
         builder.field(RANK_WINDOW_SIZE_FIELD.getPreferredName(), rankWindowSize);
+        builder.field(RetrieverBuilder.MIN_SCORE_FIELD.getPreferredName(), minScore);
     }
 }

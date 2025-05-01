@@ -268,4 +268,14 @@ public class RankDocsQueryBuilderTests extends AbstractQueryTestCase<RankDocsQue
             }
         }
     }
+
+    public void testMinScoreSerializationAndParsing() throws IOException {
+        RankDoc[] rankDocs = generateRandomRankDocs();
+        float minScore = randomFloatBetween(0.1f, 100.0f, true);
+        RankDocsQueryBuilder originalBuilder = new RankDocsQueryBuilder(rankDocs, null, false, minScore);
+
+        RankDocsQueryBuilder parsedBuilder = (RankDocsQueryBuilder) assertSerialization(originalBuilder);
+
+        assertArrayEquals(rankDocs, parsedBuilder.rankDocs());
+    }
 }
