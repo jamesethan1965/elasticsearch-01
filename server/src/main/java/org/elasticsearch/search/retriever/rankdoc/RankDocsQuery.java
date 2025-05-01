@@ -274,12 +274,12 @@ public class RankDocsQuery extends Query {
         this.minScore = minScore;
     }
 
-    private RankDocsQuery(RankDoc[] docs, Query topQuery, Query tailQuery, boolean onlyRankDocs) {
+    private RankDocsQuery(RankDoc[] docs, Query topQuery, Query tailQuery, boolean onlyRankDocs, float minScore) {
         this.docs = docs;
         this.topQuery = topQuery;
         this.tailQuery = tailQuery;
         this.onlyRankDocs = onlyRankDocs;
-        this.minScore = DEFAULT_MIN_SCORE;
+        this.minScore = minScore;
     }
 
     private static int binarySearch(RankDoc[] docs, int fromIndex, int toIndex, int key) {
@@ -312,7 +312,11 @@ public class RankDocsQuery extends Query {
     @Override
     public Query rewrite(IndexSearcher searcher) throws IOException {
         if (tailQuery == null) {
-            return topQuery;
+            var topRewrite = topQuery.rewrite(searcher);
+            if (topRewrite != topQuery) {
+                return new RankDocsQuery(this.docs, topRewrite, null, this.onlyRankDocs, this.minScore);
+            }
+            return this;
         }
         boolean hasChanged = false;
         var topRewrite = topQuery.rewrite(searcher);
@@ -323,22 +327,33 @@ public class RankDocsQuery extends Query {
         if (tailRewrite != tailQuery) {
             hasChanged = true;
         }
-        return hasChanged ? new RankDocsQuery(docs, topRewrite, tailRewrite, onlyRankDocs) : this;
+        return hasChanged ? new RankDocsQuery(this.docs, topRewrite, tailRewrite, this.onlyRankDocs, this.minScore) : this;
     }
 
     @Override
     public Weight createWeight(IndexSearcher searcher, ScoreMode scoreMode, float boost) throws IOException {
-        if (tailQuery == null) {
-            throw new IllegalArgumentException("[tailQuery] should not be null; maybe missing a rewrite?");
+        Query combinedQuery;
+        if (onlyRankDocs) {
+            combinedQuery = topQuery; 
+        } else {
+            if (tailQuery == null) {
+                 combinedQuery = topQuery;
+            } else {
+                var combined = new BooleanQuery.Builder().add(topQuery, BooleanClause.Occur.SHOULD)
+                    .add(tailQuery, BooleanClause.Occur.FILTER)
+                    .build();
+                combinedQuery = combined;
+            }
         }
-        var combined = new BooleanQuery.Builder().add(topQuery, onlyRankDocs ? BooleanClause.Occur.MUST : BooleanClause.Occur.SHOULD)
-            .add(tailQuery, BooleanClause.Occur.FILTER)
-            .build();
+
         var topWeight = topQuery.createWeight(searcher, scoreMode, boost);
-        var combinedWeight = searcher.rewrite(combined).createWeight(searcher, scoreMode, boost);
+        var combinedWeight = searcher.rewrite(combinedQuery).createWeight(searcher, scoreMode, boost);
         return new Weight(this) {
             @Override
             public int count(LeafReaderContext context) throws IOException {
+                if (onlyRankDocs) {
+                    return topWeight.count(context);
+                }
                 return combinedWeight.count(context);
             }
 
@@ -359,22 +374,23 @@ public class RankDocsQuery extends Query {
 
             @Override
             public ScorerSupplier scorerSupplier(LeafReaderContext context) throws IOException {
-                ScorerSupplier supplier = combinedWeight.scorerSupplier(context);
-                if (minScore != DEFAULT_MIN_SCORE) {
+                ScorerSupplier baseSupplier = onlyRankDocs ? topWeight.scorerSupplier(context) : combinedWeight.scorerSupplier(context);
+
+                if (minScore != DEFAULT_MIN_SCORE && baseSupplier != null) {
                     return new ScorerSupplier() {
                         @Override
                         public Scorer get(long leadCost) throws IOException {
-                            Scorer scorer = supplier.get(leadCost);
-                            return new MinScoreScorer(scorer, minScore);
+                            Scorer scorer = baseSupplier.get(leadCost);
+                            return scorer == null ? null : new MinScoreScorer(scorer, minScore);
                         }
 
                         @Override
                         public long cost() {
-                            return supplier.cost();
+                            return baseSupplier.cost();
                         }
                     };
                 }
-                return supplier;
+                return baseSupplier;
             }
         };
     }
