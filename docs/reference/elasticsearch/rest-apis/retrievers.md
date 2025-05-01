@@ -363,7 +363,6 @@ GET /restaurants/_search
 An [RRF](/reference/elasticsearch/rest-apis/reciprocal-rank-fusion.md) retriever returns top documents based on the RRF formula, equally weighting two or more child retrievers. Reciprocal rank fusion (RRF) is a method for combining multiple result sets with different relevance indicators into a single result set.
 
 
-
 #### Parameters [rrf-retriever-parameters]
 
 `retrievers`
