@@ -63,7 +63,6 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
         args -> {
             List<LinearRetrieverComponent> retrieverComponents = (List<LinearRetrieverComponent>) args[0];
             int rankWindowSize = args[1] == null ? RankBuilder.DEFAULT_RANK_WINDOW_SIZE : (int) args[1];
-            float minScore = args[2] == null ? DEFAULT_MIN_SCORE : (float) args[2];
             List<RetrieverSource> innerRetrievers = new ArrayList<>();
             float[] weights = new float[retrieverComponents.size()];
             ScoreNormalizer[] normalizers = new ScoreNormalizer[retrieverComponents.size()];
@@ -74,7 +73,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
                 normalizers[index] = component.normalizer;
                 index++;
             }
-            return new LinearRetrieverBuilder(innerRetrievers, rankWindowSize, weights, normalizers, minScore);
+            return new LinearRetrieverBuilder(innerRetrievers, rankWindowSize, weights, normalizers, DEFAULT_MIN_SCORE);
         }
     );
 
@@ -196,6 +195,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
         return NAME;
     }
 
+    @Override
     public void doToXContent(XContentBuilder builder, Params params) throws IOException {
         int index = 0;
         if (innerRetrievers.isEmpty() == false) {
@@ -211,6 +211,5 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
             builder.endArray();
         }
         builder.field(RANK_WINDOW_SIZE_FIELD.getPreferredName(), rankWindowSize);
-        builder.field(RetrieverBuilder.MIN_SCORE_FIELD.getPreferredName(), minScore);
     }
 }
