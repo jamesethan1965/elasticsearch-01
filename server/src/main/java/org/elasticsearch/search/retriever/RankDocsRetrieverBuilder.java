@@ -124,18 +124,30 @@ public class RankDocsRetrieverBuilder extends RetrieverBuilder {
                     false
                 );
             }
+            // Set top-level minScore only when not in onlyRankDocs mode
+            if (effectiveMinScore != RankDocsQueryBuilder.DEFAULT_MIN_SCORE) {
+                 searchSourceBuilder.minScore(effectiveMinScore);
+            }
         } else {
-            // Pass minScore down to RankDocsQueryBuilder
-            rankQuery = new RankDocsQueryBuilder(rankDocResults, null, false, effectiveMinScore);
+            // Pass minScore down to RankDocsQueryBuilder and set onlyRankDocs = true to ensure pre-computed scores are used.
+            // Filter the results upfront if minScore is set
+            RankDoc[] finalRankDocs;
+            if (effectiveMinScore != RankDocsQueryBuilder.DEFAULT_MIN_SCORE) {
+                finalRankDocs = Arrays.stream(rankDocResults)
+                    .filter(doc -> doc.score >= effectiveMinScore)
+                    .toArray(RankDoc[]::new);
+            } else {
+                finalRankDocs = rankDocResults;
+            }
+            // Now pass the potentially filtered array and the original minScore
+            rankQuery = new RankDocsQueryBuilder(finalRankDocs, null, true, effectiveMinScore);
+            // Do NOT set top-level minScore here, filtering is done above, and RankDocsQuery handles score propagation.
         }
         rankQuery.queryName(retrieverName());
         // ignore prefilters of this level, they were already propagated to children
         searchSourceBuilder.query(rankQuery);
         if (searchSourceBuilder.size() < 0) {
             searchSourceBuilder.size(rankWindowSize);
-        }
-        if (sourceHasMinScore()) {
-            searchSourceBuilder.minScore(effectiveMinScore);
         }
         if (searchSourceBuilder.size() + searchSourceBuilder.from() > rankDocResults.length) {
             searchSourceBuilder.size(Math.max(0, rankDocResults.length - searchSourceBuilder.from()));

@@ -924,7 +924,7 @@ public class LinearRetrieverIT extends ESIntegTestCase {
             assertThat(resp.getHits().getAt(2).getId(), equalTo("doc_1"));
             assertThat((double) resp.getHits().getAt(2).getScore(), closeTo(10.0f, 0.1f));
             assertThat(resp.getHits().getAt(3).getId(), equalTo("doc_3"));
-            assertThat((double) resp.getHits().getAt(3).getScore(), closeTo(0.0f, 0.1f));
+            assertThat((double) resp.getHits().getAt(3).getScore(), closeTo(10.0f, 0.1f));
         });
     }
 
@@ -994,12 +994,9 @@ public class LinearRetrieverIT extends ESIntegTestCase {
             System.out.println("------------------");
 
             // Calculated scores >= 1.5f should only be doc_2(2.0)
-            // Observed behavior consistently shows 2 hits: doc_2(2.0) and one other doc (doc_1 or doc_3) with score 0.0
-            assertThat(resp.getHits().getHits().length, equalTo(2));
+            assertThat(resp.getHits().getHits().length, equalTo(1));
             assertThat(resp.getHits().getAt(0).getId(), equalTo("doc_2"));
             assertThat((double) resp.getHits().getAt(0).getScore(), closeTo(2.0f, 0.01f));
-            // Assert the second hit has score 0.0, but don't assert its ID due to inconsistency
-            assertThat((double) resp.getHits().getAt(1).getScore(), closeTo(0.0f, 0.01f));
         });
     }
 
