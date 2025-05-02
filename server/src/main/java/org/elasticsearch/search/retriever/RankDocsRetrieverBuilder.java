@@ -126,16 +126,14 @@ public class RankDocsRetrieverBuilder extends RetrieverBuilder {
             }
             // Set top-level minScore only when not in onlyRankDocs mode
             if (effectiveMinScore != RankDocsQueryBuilder.DEFAULT_MIN_SCORE) {
-                 searchSourceBuilder.minScore(effectiveMinScore);
+                searchSourceBuilder.minScore(effectiveMinScore);
             }
         } else {
             // Pass minScore down to RankDocsQueryBuilder and set onlyRankDocs = true to ensure pre-computed scores are used.
             // Filter the results upfront if minScore is set
             RankDoc[] finalRankDocs;
             if (effectiveMinScore != RankDocsQueryBuilder.DEFAULT_MIN_SCORE) {
-                finalRankDocs = Arrays.stream(rankDocResults)
-                    .filter(doc -> doc.score >= effectiveMinScore)
-                    .toArray(RankDoc[]::new);
+                finalRankDocs = Arrays.stream(rankDocResults).filter(doc -> doc.score >= effectiveMinScore).toArray(RankDoc[]::new);
             } else {
                 finalRankDocs = rankDocResults;
             }

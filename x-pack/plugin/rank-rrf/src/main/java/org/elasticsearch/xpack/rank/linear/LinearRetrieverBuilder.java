@@ -191,8 +191,8 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
 
         // Filter results based on minScore
         LinearRankDoc[] filteredResults = Arrays.stream(sortedResults)
-                                                .filter(doc -> doc.score >= this.minScore)
-                                                .toArray(LinearRankDoc[]::new);
+            .filter(doc -> doc.score >= this.minScore)
+            .toArray(LinearRankDoc[]::new);
 
         // trim the results if needed, otherwise each shard will always return `rank_window_size` results.
         LinearRankDoc[] topResults = new LinearRankDoc[Math.min(rankWindowSize, filteredResults.length)];
