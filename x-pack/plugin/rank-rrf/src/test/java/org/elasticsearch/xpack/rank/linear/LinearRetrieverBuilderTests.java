@@ -68,9 +68,9 @@ public class LinearRetrieverBuilderTests extends ESTestCase {
         ScoreDoc[] right = new ScoreDoc[] { new ScoreDoc(0, 2.0f, 0), new ScoreDoc(1, 0.6f, 0), new ScoreDoc(2, 1.8f, 0) };
 
         RankDoc[] combinedRankDocs = builder.combineInnerRetrieverResults(List.of(left, right), false);
-        assertEquals("Combined docs before filtering", 3, combinedRankDocs.length);
+        assertEquals("Combined docs count (already filtered)", 2, combinedRankDocs.length);
 
-        List<RankDoc> filteredDocs = Stream.of(combinedRankDocs).filter(rd -> rd.score >= builder.getMinScore()).sorted().toList();
+        List<RankDoc> filteredDocs = Stream.of(combinedRankDocs).sorted().toList();
 
         assertEquals("Filtered docs count", 2, filteredDocs.size());
 
