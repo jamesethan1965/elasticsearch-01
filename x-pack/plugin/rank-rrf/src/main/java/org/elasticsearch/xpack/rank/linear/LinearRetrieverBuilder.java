@@ -55,6 +55,7 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
 
     private final float[] weights;
     private final ScoreNormalizer[] normalizers;
+    private final float minScore;
 
     @SuppressWarnings("unchecked")
     static final ConstructingObjectParser<LinearRetrieverBuilder, RetrieverParserContext> PARSER = new ConstructingObjectParser<>(
@@ -211,5 +212,9 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
             builder.endArray();
         }
         builder.field(RANK_WINDOW_SIZE_FIELD.getPreferredName(), rankWindowSize);
+    }
+
+    public float getMinScore() {
+        return minScore;
     }
 }
