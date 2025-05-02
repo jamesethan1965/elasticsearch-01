@@ -22,9 +22,7 @@ public class LinearRetrieverBuilderTests extends ESTestCase {
         ScoreNormalizer[] normalizers = new ScoreNormalizer[] { IdentityScoreNormalizer.INSTANCE, IdentityScoreNormalizer.INSTANCE };
         float minScore = 0f;
 
-        LinearRetrieverBuilder builder = new LinearRetrieverBuilder(
-            sources, rankWindowSize, weights, normalizers, minScore
-        );
+        LinearRetrieverBuilder builder = new LinearRetrieverBuilder(sources, rankWindowSize, weights, normalizers, minScore);
 
         ScoreDoc[] left = new ScoreDoc[] { new ScoreDoc(5, 1.0f, 0), new ScoreDoc(6, 2.0f, 0) };
         ScoreDoc[] right = new ScoreDoc[] { new ScoreDoc(5, 3.0f, 0), new ScoreDoc(6, 1.0f, 0), new ScoreDoc(7, 0.5f, 0) };
@@ -56,10 +54,8 @@ public class LinearRetrieverBuilderTests extends ESTestCase {
         ScoreNormalizer[] normalizers = new ScoreNormalizer[] { IdentityScoreNormalizer.INSTANCE, IdentityScoreNormalizer.INSTANCE };
         final float minScoreThreshold = 1.5f;
 
-        LinearRetrieverBuilder builder = new LinearRetrieverBuilder(
-            sources, rankWindowSize, weights, normalizers, minScoreThreshold
-        );
-        assertEquals(minScoreThreshold, builder.getMinScore(), 0f); 
+        LinearRetrieverBuilder builder = new LinearRetrieverBuilder(sources, rankWindowSize, weights, normalizers, minScoreThreshold);
+        assertEquals(minScoreThreshold, builder.getMinScore(), 0f);
 
         ScoreDoc[] left = new ScoreDoc[] { new ScoreDoc(0, 1.0f, 0), new ScoreDoc(1, 0.8f, 0) };
         ScoreDoc[] right = new ScoreDoc[] { new ScoreDoc(0, 2.0f, 0), new ScoreDoc(1, 0.6f, 0), new ScoreDoc(2, 1.8f, 0) };
@@ -67,28 +63,25 @@ public class LinearRetrieverBuilderTests extends ESTestCase {
         RankDoc[] combinedRankDocs = builder.combineInnerRetrieverResults(List.of(left, right), false);
         assertEquals("Combined docs before filtering", 3, combinedRankDocs.length);
 
-        List<RankDoc> filteredDocs = Stream.of(combinedRankDocs)
-                                            .filter(rd -> rd.score >= builder.getMinScore())
-                                            .sorted()
-                                            .toList();
+        List<RankDoc> filteredDocs = Stream.of(combinedRankDocs).filter(rd -> rd.score >= builder.getMinScore()).sorted().toList();
 
         assertEquals("Filtered docs count", 2, filteredDocs.size());
 
         boolean foundDoc0 = false;
         boolean foundDoc2 = false;
         for (RankDoc scoreDoc : filteredDocs) {
-             assertTrue("Score should be >= minScore", scoreDoc.score >= minScoreThreshold);
+            assertTrue("Score should be >= minScore", scoreDoc.score >= minScoreThreshold);
             if (scoreDoc.doc == 0) {
-                 assertEquals("Doc 0 score", 3.0f, scoreDoc.score, 0.001f);
+                assertEquals("Doc 0 score", 3.0f, scoreDoc.score, 0.001f);
                 foundDoc0 = true;
             } else if (scoreDoc.doc == 2) {
-                 assertEquals("Doc 2 score", 1.8f, scoreDoc.score, 0.001f);
+                assertEquals("Doc 2 score", 1.8f, scoreDoc.score, 0.001f);
                 foundDoc2 = true;
             } else {
-                 fail("Unexpected document ID returned: " + scoreDoc.doc + " (should have been filtered)");
+                fail("Unexpected document ID returned: " + scoreDoc.doc + " (should have been filtered)");
             }
         }
         assertTrue("Document 0 should have been found", foundDoc0);
         assertTrue("Document 2 should have been found", foundDoc2);
     }
-} 
+}

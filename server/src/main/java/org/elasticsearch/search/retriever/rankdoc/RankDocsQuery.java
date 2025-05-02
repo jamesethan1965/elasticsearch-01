@@ -334,10 +334,10 @@ public class RankDocsQuery extends Query {
     public Weight createWeight(IndexSearcher searcher, ScoreMode scoreMode, float boost) throws IOException {
         Query combinedQuery;
         if (onlyRankDocs) {
-            combinedQuery = topQuery; 
+            combinedQuery = topQuery;
         } else {
             if (tailQuery == null) {
-                 combinedQuery = topQuery;
+                combinedQuery = topQuery;
             } else {
                 var combined = new BooleanQuery.Builder().add(topQuery, BooleanClause.Occur.SHOULD)
                     .add(tailQuery, BooleanClause.Occur.FILTER)

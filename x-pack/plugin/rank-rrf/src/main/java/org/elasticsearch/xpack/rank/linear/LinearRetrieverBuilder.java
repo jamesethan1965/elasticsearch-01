@@ -31,9 +31,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import static org.elasticsearch.index.query.RankDocsQueryBuilder.DEFAULT_MIN_SCORE;
 import static org.elasticsearch.xcontent.ConstructingObjectParser.constructorArg;
 import static org.elasticsearch.xcontent.ConstructingObjectParser.optionalConstructorArg;
-import static org.elasticsearch.index.query.RankDocsQueryBuilder.DEFAULT_MIN_SCORE;
 import static org.elasticsearch.xpack.rank.RankRRFFeatures.LINEAR_RETRIEVER_SUPPORTED;
 import static org.elasticsearch.xpack.rank.linear.LinearRetrieverComponent.DEFAULT_WEIGHT;
 
@@ -107,14 +107,20 @@ public final class LinearRetrieverBuilder extends CompoundRetrieverBuilder<Linea
     }
 
     LinearRetrieverBuilder(List<RetrieverSource> innerRetrievers, int rankWindowSize) {
-        this(innerRetrievers, rankWindowSize, getDefaultWeight(innerRetrievers.size()), getDefaultNormalizers(innerRetrievers.size()), DEFAULT_MIN_SCORE);
+        this(
+            innerRetrievers,
+            rankWindowSize,
+            getDefaultWeight(innerRetrievers.size()),
+            getDefaultNormalizers(innerRetrievers.size()),
+            DEFAULT_MIN_SCORE
+        );
     }
 
     public LinearRetrieverBuilder(
         List<RetrieverSource> innerRetrievers,
         int rankWindowSize,
         float[] weights,
-        ScoreNormalizer[] normalizers, 
+        ScoreNormalizer[] normalizers,
         float minScore
     ) {
         super(innerRetrievers, rankWindowSize);

@@ -294,11 +294,7 @@ public class RankDocsQueryBuilderTests extends AbstractQueryTestCase<RankDocsQue
             }
 
             float minScore = 1.5f;
-            RankDoc[] rankDocs = new RankDoc[] {
-                new RankDoc(0, 2.0f, 0),
-                new RankDoc(1, 1.0f, 0),
-                new RankDoc(2, 1.6f, 0)
-            };
+            RankDoc[] rankDocs = new RankDoc[] { new RankDoc(0, 2.0f, 0), new RankDoc(1, 1.0f, 0), new RankDoc(2, 1.6f, 0) };
             Arrays.sort(rankDocs);
             for (int i = 0; i < rankDocs.length; i++) {
                 rankDocs[i].rank = i;
@@ -313,7 +309,7 @@ public class RankDocsQueryBuilderTests extends AbstractQueryTestCase<RankDocsQue
                 IndexSearcher searcher = newSearcher(reader);
                 TopDocs topDocs = searcher.search(query, 10);
 
-                long expectedTotalHits = 2; 
+                long expectedTotalHits = 2;
                 long expectedFilteredHits = 2;
                 assertEquals("Total hits should match filtered count", expectedTotalHits, topDocs.totalHits.value());
                 assertEquals("Number of score docs should match filtered count", expectedFilteredHits, topDocs.scoreDocs.length);
